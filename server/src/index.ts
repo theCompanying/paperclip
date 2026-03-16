@@ -695,8 +695,11 @@ export async function startServer(): Promise<StartedServer> {
     process.exit(0);
   };
 
-  process.once("SIGINT", () => void gracefulShutdown("SIGINT"));
-  process.once("SIGTERM", () => void gracefulShutdown("SIGTERM"));
+  const needsGracefulShutdown = (embeddedPostgres && embeddedPostgresStartedByThisProcess) || !!lifecycleOpts || !!usageStop;
+  if (needsGracefulShutdown) {
+    process.once("SIGINT", () => void gracefulShutdown("SIGINT"));
+    process.once("SIGTERM", () => void gracefulShutdown("SIGTERM"));
+  }
 
   return {
     server,
